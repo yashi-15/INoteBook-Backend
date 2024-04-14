@@ -6,6 +6,8 @@ const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const JWT_SECRET = "Hellobrohowareyou";
 
+
+// ROUTE 1: CREATE NEW USER 
 router.post("/createUser", [body("name", "Enter a valid name").isLength({ min: 3 }), body("email", "Enter a valid Email").isEmail(), body("password").isLength({ min: 5 })], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -36,13 +38,14 @@ router.post("/createUser", [body("name", "Enter a valid name").isLength({ min: 3
     }
 });
 
+
+// ROUTE 2: AUTHENTICATE  THE USERS AND GET BACK A TOKEN 
 // Authenticate a user
 router.post("/login", [body("email", "Enter a valid Email").isEmail(), body("password", "Password cannot be blank").exists()], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
 
     const { email, password } = req.body;
     try {
