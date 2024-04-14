@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+var fetchuser = require( "../middleware/fetchuser")
 const User = require("../models/User");
 const { body, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const JWT_SECRET = "Hellobrohowareyou";
 
-
-// ROUTE 1: CREATE NEW USER 
+// ROUTE 1: CREATE NEW USER USING: POST "/api/auth/createUser" . No login required
 router.post("/createUser", [body("name", "Enter a valid name").isLength({ min: 3 }), body("email", "Enter a valid Email").isEmail(), body("password").isLength({ min: 5 })], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -38,8 +38,7 @@ router.post("/createUser", [body("name", "Enter a valid name").isLength({ min: 3
     }
 });
 
-
-// ROUTE 2: AUTHENTICATE  THE USERS AND GET BACK A TOKEN 
+// ROUTE 2: AUTHENTICATE  THE USERS AND GET BACK A TOKEN USING: POST "/api/auth/login" . No login required
 // Authenticate a user
 router.post("/login", [body("email", "Enter a valid Email").isEmail(), body("password", "Password cannot be blank").exists()], async (req, res) => {
     const errors = validationResult(req);
@@ -63,6 +62,17 @@ router.post("/login", [body("email", "Enter a valid Email").isEmail(), body("pas
         };
         const authtoken = jwt.sign(data, JWT_SECRET);
         res.json({ authtoken });
+    } catch (error) {
+        res.status(500).send("Internal server error ");
+    }
+});
+
+// ROUTE 3: GET LOGGED IN USER DETAILS USING: POST "/api/auth/getuser" . Login required
+router.post("/getuser", fetchuser , async (req, res) => {
+    try {
+        const userId  = req.user;
+        const user = await User.findById(userId).select("-password");
+        res.send(user);
     } catch (error) {
         res.status(500).send("Internal server error ");
     }
