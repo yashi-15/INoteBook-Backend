@@ -82,4 +82,35 @@ router.get("/getuser", fetchuser , async (req, res) => {
     }
 });
 
+// ROUTE 4: UPDATE USER DETAILS USING: PUT "/api/auth/updateuser". Login required
+router.put("/updateuser", fetchuser, [
+    body("name", "Enter a valid name").isLength({ min: 3 }),
+    body("email", "Enter a valid Email").isEmail(),
+  ], async (req, res) => {
+    let success = false;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success, errors: errors.array() });
+    }
+  
+    try {
+      const userId = req.user;
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ success, error: "User not found" });
+      }
+  
+      const { name, email } = req.body;
+      user.name = name;
+      user.email = email;
+  
+      await user.save();
+      success = true;
+      res.json({ success, message: "User details updated successfully" });
+    } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Internal server error ");
+    }
+  });
+
 module.exports = router;
